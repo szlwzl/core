@@ -36,7 +36,7 @@ abstract class AbstractMapping {
 	 * @param string $col
 	 * @return bool
 	 */
-	private function isColNameValid($col) {
+	public function isColNameValid($col) {
 		switch($col) {
 			case 'ldap_dn':
 			case 'owncloud_name':
@@ -122,10 +122,12 @@ abstract class AbstractMapping {
 			WHERE `owncloud_name` LIKE ?
 		');
 
-		$res = $query->execute(array($search))->fetchAll();
+		$res = $query->execute(array($search));
 		$names = array();
-		while($row = $res->fetchRow()) {
-			$names[] = $row['owncloud_name'];
+		if($res !== false) {
+			while($row = $query->fetch()) {
+				$names[] = $row['owncloud_name'];
+			}
 		}
 		return $names;
 	}
@@ -153,7 +155,16 @@ abstract class AbstractMapping {
 			'directory_uuid' => $uuid
 		);
 
-		return $this->dbc->insertIfNotExist($this->getTableName(), $row);
+		try {
+			$result = $this->dbc->insertIfNotExist($this->getTableName(), $row);
+			return $result;
+		} catch (\Doctrine\DBAL\DBALException $e) {
+			file_put_contents('/tmp/debug', 'YES' . PHP_EOL);
+			return false;
+		} catch (\Exception $e) {
+			file_put_contents('/tmp/debug', 'YES 2' . PHP_EOL);
+			return false;
+		}
 	}
 
 	/**
