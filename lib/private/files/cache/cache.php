@@ -504,6 +504,46 @@ class Cache {
 	}
 
 	/**
+	 * search for files by tag
+	 *
+	 * @param string|int $tag name or tag id
+	 * @return array
+	 */
+	public function searchByTag($tag) {
+		$sql = 'SELECT `fileid`, `storage`, `path`, `parent`, `name`, ' .
+			'`mimetype`, `mimepart`, `size`, `mtime`, `encrypted`, `unencrypted_size`, `etag`, `permissions` ' .
+			'FROM `*PREFIX*filecache` file, `*PREFIX*vcategory_to_object` tagmap, `*PREFIX*vcategory` tag ' .
+			// JOIN filecache to vcategory_to_object
+			'WHERE file.`fileid` = tagmap.`objid` '.
+			// JOIN vcategory_to_object to vcategory
+			'AND tagmap.`type` = tag.`type` ' .
+			'AND tagmap.`categoryid` = tag.`id` ' .
+			// conditions
+			'AND file.`storage` = ? '.
+			'AND tag.`type` = "files" ' .
+			'AND tag.`uid` = ? ';
+		if (is_int($tag)) {
+			$sql .= 'AND tag.`id` = ? ';
+		} else {
+			$sql .= 'AND tag.`category` = ? ';
+		}
+		$result = \OC_DB::executeAudited(
+			$sql,
+			array(
+				$this->getNumericStorageId(),
+				// TODO: inject user
+				\OCP\User::getUser(),
+				$tag
+			)
+		);
+		$files = array();
+		while ($row = $result->fetchRow()) {
+			$files[] = $row;
+		}
+		return $files;
+	}
+
+	/**
 	 * update the folder size and the size of all parent folders
 	 *
 	 * @param string|boolean $path
