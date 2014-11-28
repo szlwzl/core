@@ -15,7 +15,7 @@ class Mapper
 	public function __construct($rootDir) {
 		$this->unchangedPhysicalRoot = $rootDir;
 		// Resolve ./, ../ and // so we can compare it to the resolved links we get alter on.
-		$this->resolvePhysicalRoot = $this->resolveRelativePath($rootDir) . '/';
+		$this->resolvePhysicalRoot = $this->resolveRelativePath($rootDir);
 	}
 
 	/**
@@ -29,7 +29,7 @@ class Mapper
 			return $physicalPath;
 		}
 
-		return $this->create($logicPath, $create);
+		return $this->create($logicPath, $create, 0, $logicPath);
 	}
 
 	/**
@@ -172,7 +172,16 @@ class Mapper
 	 * @param string $logicPath
 	 * @param boolean $store
 	 */
-	private function create($logicPath, $store) {
+	private function create($logicPath, $store, $depth, $path) {
+		if ($depth == 5 || $depth == 10 || $depth == 25) {
+			var_dump(
+				$depth,
+				$path,
+				$logicPath,
+				$this->resolvePhysicalRoot
+			);
+			$wtf = true;
+		}
 		$logicPath = $this->resolveRelativePath($logicPath);
 
 		if ($logicPath === $this->resolvePhysicalRoot ||
@@ -189,7 +198,7 @@ class Mapper
 		}
 
 		// Didn't find the path so we use the parentPath and append the slugified fileName
-		$physicalParentPath = $this->create(dirname($logicPath), $store);
+		$physicalParentPath = $this->create(dirname($logicPath), $store, $depth + 1, $path);
 		$logicFileName = basename($logicPath);
 		$slugifiedLogicFileName = $this->slugify($logicFileName);
 
