@@ -117,6 +117,8 @@ class Helper
 			$entry['isPreviewAvailable'] = true;
 		}
 		$entry['name'] = $i->getName();
+		$parts = explode('/', dirname($i->getPath()), 4);
+		$entry['path'] = '/' . $parts[3];
 		$entry['permissions'] = $i['permissions'];
 		$entry['mimetype'] = $i['mimetype'];
 		$entry['size'] = $i['size'];
