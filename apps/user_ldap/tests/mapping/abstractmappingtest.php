@@ -8,8 +8,6 @@
 
 namespace OCA\user_ldap\tests\mapping;
 
-use OCA\UserLDAP\Mapping\UserMapping;
-
 abstract class AbstractMappingTest extends \PHPUnit_Framework_TestCase {
 	abstract public function getMapper(\OCP\IDBConnection $dbMock);
 
@@ -25,11 +23,11 @@ abstract class AbstractMappingTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * returns an array of test users with dn, name and uuid as keys
+	 * returns an array of test entries with dn, name and uuid as keys
 	 * @return array
 	 */
-	protected function getTestUsers() {
-		$users = array(
+	protected function getTestData() {
+		$data = array(
 			array(
 				'dn' => 'uid=foobar,dc=example,dc=org',
 				'name' => 'Foobar',
@@ -47,17 +45,17 @@ abstract class AbstractMappingTest extends \PHPUnit_Framework_TestCase {
 			)
 		);
 
-		return $users;
+		return $data;
 	}
 
 	/**
 	 * calls map() on the given mapper and asserts result for true
 	 * @param \OCA\UserLDAP\Mapping\AbstractMapping $mapper
-	 * @param array $users
+	 * @param array $data
 	 */
-	protected function mapUsers($mapper, $users) {
-		foreach($users as $user) {
-			$done = $mapper->map($user['dn'], $user['name'], $user['uuid']);
+	protected function mapEntries($mapper, $data) {
+		foreach($data as $entry) {
+			$done = $mapper->map($entry['dn'], $entry['name'], $entry['uuid']);
 			$this->assertTrue($done);
 		}
 	}
@@ -65,37 +63,37 @@ abstract class AbstractMappingTest extends \PHPUnit_Framework_TestCase {
 	/**
 	 * initalizes environment for a test run and fills given parameters with
 	 * test objects. Preparing environment means that all mappings are cleared
-	 * first and then filled with the tests users.
+	 * first and then filled with test entries.
 	 * @param null $dbc by reference, becomes an instance of \OCP\IDBConnection
 	 * @param null $mapper by reference, becomes an instance of
 	 * \OCA\UserLDAP\Mapping\AbstractMapping
-	 * @param null $users by reference, becomes an array of test users
+	 * @param null $data by reference, becomes an array of test users or groups
 	 */
-	private function initTest(&$dbc, &$mapper, &$users) {
+	private function initTest(&$dbc, &$mapper, &$data) {
 		$dbc = \OC::$server->getDatabaseConnection();
 		$mapper = $this->getMapper($dbc);
-		$users = $this->getTestUsers();
-		// make sure DB is pristine, then fill it with test users
+		$data = $this->getTestData();
+		// make sure DB is pristine, then fill it with test entries
 		$mapper->clear();
-		$this->mapUsers($mapper, $users);
+		$this->mapEntries($mapper, $data);
 	}
 
 	/**
 	 * tests map() method with input that should result in not-mapping.
-	 * Hint: successful mapping is tested inherently with mapUsers().
+	 * Hint: successful mapping is tested inherently with mapEntries().
 	 */
 	public function testMap() {
-		$dbc = $mapper = $users = null;
-		$this->initTest($dbc, $mapper, $users);
+		$dbc = $mapper = $data = null;
+		$this->initTest($dbc, $mapper, $data);
 
 		// test that mapping will not happen when it shall not
 		$paramKeys = array('', 'dn', 'name', 'uuid');
 		foreach($paramKeys as $key) {
-			$failUser = $users[0];
+			$failEntry = $data[0];
 			if(!empty($key)) {
-				$failUser[$key] = 'do-not-get-mapped';
+				$failEntry[$key] = 'do-not-get-mapped';
 			}
-			$isMapped = $mapper->map($failUser['dn'], $failUser['name'], $failUser['uuid']);
+			$isMapped = $mapper->map($failEntry['dn'], $failEntry['name'], $failEntry['uuid']);
 			$this->assertFalse($isMapped);
 		}
 	}
@@ -105,26 +103,26 @@ abstract class AbstractMappingTest extends \PHPUnit_Framework_TestCase {
 	 * and unsuccessful requests.
 	 */
 	public function testGetMethods() {
-		$dbc = $mapper = $users = null;
-		$this->initTest($dbc, $mapper, $users);
+		$dbc = $mapper = $data = null;
+		$this->initTest($dbc, $mapper, $data);
 
-		foreach($users as $user) {
-			$fdn = $mapper->getDNByName($user['name']);
-			$this->assertSame($fdn, $user['dn']);
+		foreach($data as $entry) {
+			$fdn = $mapper->getDNByName($entry['name']);
+			$this->assertSame($fdn, $entry['dn']);
 		}
 		$fdn = $mapper->getDNByName('nosuchname');
 		$this->assertFalse($fdn);
 
-		foreach($users as $user) {
-			$name = $mapper->getNameByDN($user['dn']);
-			$this->assertSame($name, $user['name']);
+		foreach($data as $entry) {
+			$name = $mapper->getNameByDN($entry['dn']);
+			$this->assertSame($name, $entry['name']);
 		}
 		$name = $mapper->getNameByDN('nosuchdn');
 		$this->assertFalse($name);
 
-		foreach($users as $user) {
-			$name = $mapper->getNameByUUID($user['uuid']);
-			$this->assertSame($name, $user['name']);
+		foreach($data as $entry) {
+			$name = $mapper->getNameByUUID($entry['uuid']);
+			$this->assertSame($name, $entry['name']);
 		}
 		$name = $mapper->getNameByUUID('nosuchuuid');
 		$this->assertFalse($name);
@@ -134,8 +132,8 @@ abstract class AbstractMappingTest extends \PHPUnit_Framework_TestCase {
 	 * tests getNamesBySearch() for successful and unsuccessful requests.
 	 */
 	public function testSearch() {
-		$dbc = $mapper = $users = null;
-		$this->initTest($dbc, $mapper, $users);
+		$dbc = $mapper = $data = null;
+		$this->initTest($dbc, $mapper, $data);
 
 		$names = $mapper->getNamesBySearch('%oo%');
 		$this->assertTrue(is_array($names));
@@ -151,13 +149,13 @@ abstract class AbstractMappingTest extends \PHPUnit_Framework_TestCase {
 	 * tests setDNbyUUID() for successful and unsuccessful update.
 	 */
 	public function testSetMethod() {
-		$dbc = $mapper = $users = null;
-		$this->initTest($dbc, $mapper, $users);
+		$dbc = $mapper = $data = null;
+		$this->initTest($dbc, $mapper, $data);
 
 		$newDN = 'uid=modified,dc=example,dc=org';
-		$done = $mapper->setDNbyUUID($newDN, $users[0]['uuid']);
+		$done = $mapper->setDNbyUUID($newDN, $data[0]['uuid']);
 		$this->assertTrue($done);
-		$fdn = $mapper->getDNByName($users[0]['name']);
+		$fdn = $mapper->getDNByName($data[0]['name']);
 		$this->assertSame($fdn, $newDN);
 
 		$newDN = 'uid=notme,dc=example,dc=org';
@@ -172,13 +170,13 @@ abstract class AbstractMappingTest extends \PHPUnit_Framework_TestCase {
 	 * tests clear() for successful update.
 	 */
 	public function testClear() {
-		$dbc = $mapper = $users = null;
-		$this->initTest($dbc, $mapper, $users);
+		$dbc = $mapper = $data = null;
+		$this->initTest($dbc, $mapper, $data);
 
 		$done = $mapper->clear();
 		$this->assertTrue($done);
-		foreach($users as $user) {
-			$name = $mapper->getNameByUUID($user['uuid']);
+		foreach($data as $entry) {
+			$name = $mapper->getNameByUUID($entry['uuid']);
 			$this->assertFalse($name);
 		}
 	}
