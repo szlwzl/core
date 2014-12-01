@@ -98,7 +98,14 @@ abstract class AbstractMapping {
 			SET `ldap_dn` = ?
 			WHERE `directory_uuid` = ?
 		');
-		return $query->execute(array($fdn, $uuid));
+		$result = $query->execute(array($fdn, $uuid));
+		if($result === true) {
+			if($query->rowCount() > 0) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -157,7 +164,8 @@ abstract class AbstractMapping {
 
 		try {
 			$result = $this->dbc->insertIfNotExist($this->getTableName(), $row);
-			return $result;
+			// insertIfNotExist returns values as int
+			return (bool)$result;
 		} catch (\Doctrine\DBAL\DBALException $e) {
 			file_put_contents('/tmp/debug', 'YES' . PHP_EOL);
 			return false;
