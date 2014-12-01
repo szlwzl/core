@@ -82,7 +82,7 @@ class OC_Log_Owncloud {
 			}
 			$entry = json_encode($entry);
 			$handle = @fopen(self::$logFile, 'a');
-// 			@chmod(self::$logFile, 0640);
+			@chmod(self::$logFile, 0640);
 			if ($handle) {
 				fwrite($handle, $entry."\n");
 				fclose($handle);
