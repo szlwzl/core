@@ -154,7 +154,7 @@ class Test_Migration extends \Test\TestCase {
 		$this->assertTableNotExist('encryption_test');
 
 		$rec = $config->getUserValue('user1', 'files_encryption', 'recovery_enabled');
-		$mig = $config->getUserValue('user1', 'files_encryption', 'migration_status');
+		$mig = $config->getUserValue('user1', 'files_encryption', 'migration_status', null);
 
 		$this->assertEquals(1, $rec);
 		$this->assertEquals(0, $mig);

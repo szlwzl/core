@@ -30,7 +30,7 @@ $groupsInfo->setSorting($groupsInfo::SORT_USERCOUNT);
 list($adminGroup, $groups) = $groupsInfo->get();
 
 $recoveryAdminEnabled = OC_App::isEnabled('files_encryption') &&
-					    $config->getAppValue( 'files_encryption', 'recoveryAdminEnabled' );
+					    $config->getAppValue( 'files_encryption', 'recoveryAdminEnabled', null );
 
 if($isAdmin) {
 	$accessibleUsers = OC_User::getDisplayNames('', 30);
