@@ -242,7 +242,7 @@ class Test_Encryption_Share extends \OCA\Files_Encryption\Tests\TestCase {
 			'/' . \Test_Encryption_Share::TEST_ENCRYPTION_SHARE_USER1 . '/files_encryption/share-keys/'
 			. $this->filename . '.' . \Test_Encryption_Share::TEST_ENCRYPTION_SHARE_USER3 . '.shareKey'));
 
-		// login as user2
+		// login as user3
 		self::loginHelper(\Test_Encryption_Share::TEST_ENCRYPTION_SHARE_USER3);
 
 		// get file contents
