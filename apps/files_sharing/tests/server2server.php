@@ -35,6 +35,12 @@ class Test_Files_Sharing_S2S_OCS_API extends TestCase {
 	protected function setUp() {
 		parent::setUp();
 
+		// make sure that we stat with clean tables
+		$query = \OCP\DB::prepare('DELETE FROM *PREFIX*share');
+		$query->execute();
+		$query = \OCP\DB::prepare('DELETE FROM *PREFIX*share_external');
+		$query->execute();
+
 		$this->s2s = new \OCA\Files_Sharing\API\Server2Server();
 	}
 
@@ -66,8 +72,8 @@ class Test_Files_Sharing_S2S_OCS_API extends TestCase {
 		$this->assertSame('/name', $data['name']);
 		$this->assertSame('owner', $data['owner']);
 		$this->assertSame('admin', $data['user']);
-		$this->assertSame('1', $data['remote_id']);
-		$this->assertSame('0', $data['accepted']);
+		$this->assertSame(1, $data['remote_id']);
+		$this->assertSame(0, $data['accepted']);
 	}
 
 
