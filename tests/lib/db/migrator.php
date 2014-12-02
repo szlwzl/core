@@ -39,7 +39,7 @@ class Migrator extends \Test\TestCase {
 			$this->markTestSkipped('DB migration tests are not supported on MSSQL');
 		}
 		$this->manager = new \OC\DB\MDB2SchemaManager($this->connection);
-		$this->tableName = 'test_' . uniqid();
+		$this->tableName = $this->getUniqueID('test_');
 	}
 
 	protected function tearDown() {

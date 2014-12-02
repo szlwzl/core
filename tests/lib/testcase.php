@@ -30,7 +30,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase {
 	 * @param int $length
 	 * @return string
 	 */
-	protected function getUniqueID($prefix = '', $length = 13) {
+	protected static function getUniqueID($prefix = '', $length = 13) {
 		return $prefix . \OC::$server->getSecureRandom()->getLowStrengthGenerator()->generate(
 			$length,
 			// Do not use dots and slashes as we use the value for file names
